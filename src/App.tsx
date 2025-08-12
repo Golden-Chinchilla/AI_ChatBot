@@ -30,7 +30,8 @@ const AIChatBot: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [runChat, { loading: gqlLoading }] = useMutation(CHAT_MUTATION);
+  const [runChat] = useMutation(CHAT_MUTATION);
+  // const [runChat, { loading: gqlLoading }] = useMutation(CHAT_MUTATION);
 
   // 自动滚动到底部
   const scrollToBottom = () => {
