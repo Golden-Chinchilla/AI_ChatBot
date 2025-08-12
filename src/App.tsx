@@ -42,63 +42,6 @@ const AIChatBot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // 模拟AI回复
-  // const simulateAIResponse = async (userMessage: string): Promise<string> => {
-  //   // 简单的模拟AI回复逻辑
-  //   const responses = [
-  //     `我理解你提到的"${userMessage}"，让我为你分析一下...`,
-  //     `关于"${userMessage}"这个问题，我的建议是...`,
-  //     `很有趣的问题！关于"${userMessage}"，我认为...`,
-  //     `谢谢你的问题。对于"${userMessage}"，我可以这样解释...`,
-  //     `这是一个很好的观点。关于"${userMessage}"，我想补充说...`
-  //   ];
-
-  //   // 模拟网络延迟
-  //   await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-
-  //   return responses[Math.floor(Math.random() * responses.length)];
-  // };
-
-  // const handleSendMessage = async () => {
-  //   if (!inputMessage.trim() || isLoading) return;
-
-  //   const userMessage: Message = {
-  //     id: Date.now().toString(),
-  //     content: inputMessage.trim(),
-  //     sender: 'user',
-  //     timestamp: new Date()
-  //   };
-
-  //   setMessages(prev => [...prev, userMessage]);
-  //   setInputMessage('');
-  //   setIsLoading(true);
-
-  //   try {
-  //     const aiResponse = await simulateAIResponse(inputMessage.trim());
-
-  //     const aiMessage: Message = {
-  //       id: (Date.now() + 1).toString(),
-  //       content: aiResponse,
-  //       sender: 'ai',
-  //       timestamp: new Date()
-  //     };
-
-  //     setMessages(prev => [...prev, aiMessage]);
-  //   } catch (error) {
-  //     const errorMessage: Message = {
-  //       id: (Date.now() + 1).toString(),
-  //       content: '抱歉，我现在无法回复。请稍后再试。',
-  //       sender: 'ai',
-  //       timestamp: new Date()
-  //     };
-  //     setMessages(prev => [...prev, errorMessage]);
-  //   } finally {
-  //     setIsLoading(false);
-  //     inputRef.current?.focus();
-  //   }
-  // };
-
-  // 改造的 handleSendMessage 函数
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
