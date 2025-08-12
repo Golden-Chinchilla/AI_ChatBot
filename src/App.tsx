@@ -1,6 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2 } from 'lucide-react';
 import './App.css'
+import { gql, useMutation } from "@apollo/client";
+
+// 定义 GraphQL Mutation
+const CHAT_MUTATION = gql`
+  mutation Chat($message: String!) {
+    chat(message: $message)
+  }
+`;
 
 interface Message {
   id: string;
@@ -22,6 +30,7 @@ const AIChatBot: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [runChat, { loading: gqlLoading }] = useMutation(CHAT_MUTATION);
 
   // 自动滚动到底部
   const scrollToBottom = () => {
@@ -33,60 +42,110 @@ const AIChatBot: React.FC = () => {
   }, [messages]);
 
   // 模拟AI回复
-  const simulateAIResponse = async (userMessage: string): Promise<string> => {
-    // 简单的模拟AI回复逻辑
-    const responses = [
-      `我理解你提到的"${userMessage}"，让我为你分析一下...`,
-      `关于"${userMessage}"这个问题，我的建议是...`,
-      `很有趣的问题！关于"${userMessage}"，我认为...`,
-      `谢谢你的问题。对于"${userMessage}"，我可以这样解释...`,
-      `这是一个很好的观点。关于"${userMessage}"，我想补充说...`
-    ];
+  // const simulateAIResponse = async (userMessage: string): Promise<string> => {
+  //   // 简单的模拟AI回复逻辑
+  //   const responses = [
+  //     `我理解你提到的"${userMessage}"，让我为你分析一下...`,
+  //     `关于"${userMessage}"这个问题，我的建议是...`,
+  //     `很有趣的问题！关于"${userMessage}"，我认为...`,
+  //     `谢谢你的问题。对于"${userMessage}"，我可以这样解释...`,
+  //     `这是一个很好的观点。关于"${userMessage}"，我想补充说...`
+  //   ];
 
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+  //   // 模拟网络延迟
+  //   await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
+  //   return responses[Math.floor(Math.random() * responses.length)];
+  // };
 
+  // const handleSendMessage = async () => {
+  //   if (!inputMessage.trim() || isLoading) return;
+
+  //   const userMessage: Message = {
+  //     id: Date.now().toString(),
+  //     content: inputMessage.trim(),
+  //     sender: 'user',
+  //     timestamp: new Date()
+  //   };
+
+  //   setMessages(prev => [...prev, userMessage]);
+  //   setInputMessage('');
+  //   setIsLoading(true);
+
+  //   try {
+  //     const aiResponse = await simulateAIResponse(inputMessage.trim());
+
+  //     const aiMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       content: aiResponse,
+  //       sender: 'ai',
+  //       timestamp: new Date()
+  //     };
+
+  //     setMessages(prev => [...prev, aiMessage]);
+  //   } catch (error) {
+  //     const errorMessage: Message = {
+  //       id: (Date.now() + 1).toString(),
+  //       content: '抱歉，我现在无法回复。请稍后再试。',
+  //       sender: 'ai',
+  //       timestamp: new Date()
+  //     };
+  //     setMessages(prev => [...prev, errorMessage]);
+  //   } finally {
+  //     setIsLoading(false);
+  //     inputRef.current?.focus();
+  //   }
+  // };
+
+  // 改造的 handleSendMessage 函数
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputMessage.trim(),
-      sender: 'user',
-      timestamp: new Date()
+      sender: "user",
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
     setIsLoading(true);
 
     try {
-      const aiResponse = await simulateAIResponse(inputMessage.trim());
+      // 2) 调用后端 GraphQL
+      const { data, errors } = await runChat({
+        variables: { message: userMessage.content },
+      });
+
+      if (errors?.length) {
+        throw new Error(errors[0].message);
+      }
+
+      const aiText = data?.chat ?? "(no reply)";
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: aiResponse,
-        sender: 'ai',
-        timestamp: new Date()
+        content: aiText,
+        sender: "ai",
+        timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, aiMessage]);
-    } catch (error) {
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error: any) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: '抱歉，我现在无法回复。请稍后再试。',
-        sender: 'ai',
-        timestamp: new Date()
+        content: `抱歉，服务暂时不可用：${error?.message ?? "未知错误"}`,
+        sender: "ai",
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
     }
   };
+
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
